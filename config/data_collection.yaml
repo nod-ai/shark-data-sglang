@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: json-data-uploader
+  namespace: monitoring
+spec:
+  schedule: "0 0 * * *"  # Run nightly at midnight
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: data-uploader
+            image: busybox
+            args:
+            - /bin/sh
+            - -c
+            - |
+              # Script to process and upload JSON data
+              curl -X POST \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer ${GRAFANA_API_KEY}" \
+                --data-binary @/data/metrics.json \
+                http://grafana-service:3000/api/dashboards/db
+            volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          volumes:
+          - name: data-volume
+            emptyDir: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-config
+  namespace: monitoring
+data:
+  dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Cluster Details",
+        "uid": "cluster-metrics",
+        "panels": []  # Define your panels here
+      }
+    }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: grafana.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana  # For dev cluster
+            # name: prometheus-grafana  # For my-sso-cluster
+            port:
+              number: 80
