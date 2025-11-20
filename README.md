@@ -55,7 +55,7 @@ sglang_10_2.jsonl
 
 ## References
 
-- [Shortfin LLM with SGLang Documentation](https://nod-ai.github.io/shark-ai/llm/sglang/index.html?sort=result)
+- [Shortfin LLM with SGLang Documentation](https://nod-ai.github.io/amdshark-ai/llm/sglang/index.html?sort=result)
 - Performance test results can be viewed at the above link
 
 ## Future Enhancements
